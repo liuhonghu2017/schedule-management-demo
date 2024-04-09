@@ -27,10 +27,10 @@ const ScheduleFormComponent: React.FC<ScheduleFormProps> = (props) => {
 
   // 编辑时自动设置表单
   useEffect(() => {
-    if (!currentId) return;
+    if (!currentId || !open) return;
     const index = scheduleList.findIndex((item) => item.id === currentId);
     formRef.current?.setFieldsValue(scheduleList[index]);
-  }, [currentId]);
+  }, [currentId, open]);
 
   const handleAfterClose = () => {
     onClose();
@@ -59,14 +59,28 @@ const ScheduleFormComponent: React.FC<ScheduleFormProps> = (props) => {
     formRef?.current
       ?.validateFields?.()
       .then(async (values: FormValueProps) => {
-        setScheduleList([
-          ...scheduleList,
-          {
-            id: new Date().valueOf(),
-            status: false,
-            ...values,
-          },
-        ]);
+        if (currentId) {
+          setScheduleList((prevState) => {
+            const newScheduleList = [...prevState];
+            const index = prevState.findIndex((item) => item.id === currentId);
+            if (index !== -1) {
+              newScheduleList[index] = {
+                ...newScheduleList[index],
+                ...values,
+              };
+            }
+            return newScheduleList;
+          });
+        } else {
+          setScheduleList([
+            ...scheduleList,
+            {
+              id: new Date().valueOf(),
+              status: false,
+              ...values,
+            },
+          ]);
+        }
         setScheduleListRun();
       });
   };
